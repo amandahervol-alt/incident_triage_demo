@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from anthropic import Anthropic, AIMessage, ToolResult
+from anthropic import Anthropic
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ class LogRequest(BaseModel):
 function_schema = {
     "name": "suggest_rca",
     "description": "Generate a concise Root‑Cause Analysis (RCA) based on extracted log patterns.",
-    "parameters": {
+    "input_schema": {
         "type": "object",
         "properties": {
             "patterns": {
@@ -62,14 +62,14 @@ async def triage(request: LogRequest):
         raise HTTPException(status_code=400, detail="No recognizable patterns found in logs.")
 
     # 2. Build the prompt for Claude, ask it to call the function
-    user_message = AIMessage(
-        content=f"Given the following log patterns: {patterns}, provide a concise RCA."
-    )
+    user_message = {
+        "role": "user",
+        "content": f"Given the following log patterns: {patterns}, provide a concise RCA."
+    }
 
     response = client.messages.create(
         model="claude-3-5-sonnet-20240620",
         max_tokens=1024,
-        temperature=0,
         system="You are an expert incident‑triage assistant. Use the provided function to return a structured RCA.",
         messages=[user_message],
         tools=[function_schema]
