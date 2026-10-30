@@ -1,7 +1,7 @@
 # requirements.txt
 fastapi
 uvicorn[standard]
-anthropic==2.1.0
+anthropic==2.3.0
 pydantic
 python-dotenv
 pytest
